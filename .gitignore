@@ -5,3 +5,13 @@
 privKey
 coverage/
 coverage.json
+.DS_Store
+
+.project
+.settings
+audit/code-review/**/*.sol
+test/testchain/geth
+test/testchain/geth.ipc
+test/testchain/history
+test/contracts
+private
