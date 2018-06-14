@@ -5,11 +5,6 @@ import "./ISecurityToken.sol";
 
 contract ISecurityTokenRegistry {
 
-    address public polyAddress;
-
-    address public moduleRegistry;
-    address public tickerRegistry;
-
     bytes32 public protocolVersion = "0.0.1";
     mapping (bytes32 => address) public protocolVersionST;
 
@@ -31,9 +26,6 @@ contract ISecurityTokenRegistry {
 
     function setProtocolVersion(address _stVersionProxyAddress, bytes32 _version) public;
 
-    //////////////////////////////
-    ///////// Get Functions
-    //////////////////////////////
     /**
      * @dev Get security token address by ticker name
      * @param _symbol Symbol of the Scurity token

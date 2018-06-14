@@ -7,8 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Added
 
+* ERC20DividendCheckpoint module added for on-chain dividend ERC20 payments
+* EtherDividendCheckpoint module added for on-chain dividend ETH payments
 * Iterable list of investors available on-chain
-* STOs are pausable now. It is facilated by using the IPausable interface.
+* STOs are pausable now. It is facilated by using the Pausable contract.
 * ManualApprovalTransferManager - allows approval or blocking of explicit address pairs for transfers.
 * Module Factories now allow their owner to set 3 types of fees: Setup fee, Usage fee, Monthly fee.
 * Added Checkpoint feature to token. This allows the issuer to create snapshots of the token's balances and totalSupply to be used for casting votes or distributing dividends. Created CLI to demo this feature.
@@ -16,8 +18,10 @@ All notable changes to this project will be documented in this file.
 * Issuer can prevent addresses from participating in the STO. To facilitate this, `_canBuyFromSTO` has been added to modifyWhitelist function.
 * Added multi-mint feature.
 * Event `LogGenerateModuleFromFactory` emitted at the level of ModuleFactory to log the creation of the module using the respective module factory.
-* Added registration fee of `250 POLY` for registering ticker or security token with registry contracts, fee can be changed using `changePolyRegistrationFee`
-* Added IRegistry contract to handle setting and retrieving registration fee
+* Added registration fee of `250 POLY` for registering ticker or security token with registry contracts, fee can be changed using `changePolyRegistrationFee`.
+* Added ReclaimTokens contract to handle retrieving ERC20 Tokens sent to our contracts.
+* Added Pausable feature to registry functions `registerTicker`, `generateSecurityToken`, `registerModule`, `addCustomSecurityToken`.
+* Added Registry contract to handle upgradability functionality with a function to change the reference address between registry contracts.
 
 ## Changed
 
@@ -27,6 +31,7 @@ All notable changes to this project will be documented in this file.
 * Updated CLI with MultiMint process.  
 * Change the `setupCost` of `cappedSTOFactory` from `0 POLY` to `20K POLY`.      
 * Add one more parameter called the `_owner` in the `addCustomSecurityToken()`.
+* Change `_addModule` in SecurityToken.sol to get MR address from STR contract.
 
 ## Removed
 

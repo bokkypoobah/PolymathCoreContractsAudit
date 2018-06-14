@@ -11,8 +11,8 @@ const STVersion = artifacts.require('./STVersionProxy001.sol');
 const GeneralPermissionManagerFactory = artifacts.require('./GeneralPermissionManagerFactory.sol');
 const GeneralTransferManagerFactory = artifacts.require('./GeneralTransferManagerFactory.sol');
 const GeneralTransferManager = artifacts.require('./GeneralTransferManager');
-const CountTransferManagerFactory = artifacts.require('./CountTransferManagerFactory.sol');
-const CountTransferManager = artifacts.require('./CountTransferManager');
+const EtherDividendCheckpointFactory = artifacts.require('./EtherDividendCheckpointFactory.sol');
+const EtherDividendCheckpoint = artifacts.require('./EtherDividendCheckpoint');
 const GeneralPermissionManager = artifacts.require('./GeneralPermissionManager');
 const PolyTokenFaucet = artifacts.require('./PolyTokenFaucet.sol');
 
@@ -20,7 +20,7 @@ const Web3 = require('web3');
 const BigNumber = require('bignumber.js');
 const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")) // Hardcoded development port
 
-contract('CountTransferManager', accounts => {
+contract('EtherDividendCheckpoint', accounts => {
 
     // Accounts Variable declaration
     let account_polymath;
@@ -41,9 +41,9 @@ contract('CountTransferManager', accounts => {
     // Contract Instance Declaration
     let I_GeneralPermissionManagerFactory;
     let I_GeneralTransferManagerFactory;
-    let I_CountTransferManagerFactory;
+    let I_EtherDividendCheckpointFactory;
     let I_GeneralPermissionManager;
-    let I_CountTransferManager;
+    let I_EtherDividendCheckpoint;
     let I_GeneralTransferManager;
     let I_ExchangeTransferManager;
     let I_ModuleRegistry;
@@ -65,22 +65,10 @@ contract('CountTransferManager', accounts => {
     const delegateManagerKey = 1;
     const transferManagerKey = 2;
     const stoKey = 3;
+    const checkpointKey = 4;
 
     // Initial fee for ticker registry and security token registry
     const initRegFee = 250 * Math.pow(10, 18);
-
-    // CountTransferManager details
-    const holderCount = 2;           // Maximum number of token holders
-
-    let bytesSTO = web3.eth.abi.encodeFunctionCall({
-        name: 'configure',
-        type: 'function',
-        inputs: [{
-            type: 'uint256',
-            name: '_maxHolderCount'
-        }
-        ]
-    }, [holderCount]);
 
     before(async() => {
         // Accounts setup
@@ -89,9 +77,10 @@ contract('CountTransferManager', accounts => {
 
         token_owner = account_issuer;
 
-        account_investor1 = accounts[7];
-        account_investor2 = accounts[8];
-        account_investor3 = accounts[9];
+        account_investor1 = accounts[6];
+        account_investor2 = accounts[7];
+        account_investor3 = accounts[8];
+        account_investor4 = accounts[9];
 
         // ----------- POLYMATH NETWORK Configuration ------------
 
@@ -129,12 +118,12 @@ contract('CountTransferManager', accounts => {
             "GeneralDelegateManagerFactory contract was not deployed"
         );
 
-        // STEP 4: Deploy the CountTransferManager
-        I_CountTransferManagerFactory = await CountTransferManagerFactory.new(I_PolyToken.address, 0, 0, 0, {from:account_polymath});
+        // STEP 4: Deploy the EtherDividendCheckpoint
+        I_EtherDividendCheckpointFactory = await EtherDividendCheckpointFactory.new(I_PolyToken.address, 0, 0, 0, {from:account_polymath});
         assert.notEqual(
-            I_CountTransferManagerFactory.address.valueOf(),
+            I_EtherDividendCheckpointFactory.address.valueOf(),
             "0x0000000000000000000000000000000000000000",
-            "CountTransferManagerFactory contract was not deployed"
+            "EtherDividendCheckpointFactory contract was not deployed"
         );
 
         // STEP 5: Register the Modules with the ModuleRegistry contract
@@ -147,9 +136,9 @@ contract('CountTransferManager', accounts => {
         await I_ModuleRegistry.registerModule(I_GeneralPermissionManagerFactory.address, { from: account_polymath });
         await I_ModuleRegistry.verifyModule(I_GeneralPermissionManagerFactory.address, true, { from: account_polymath });
 
-        // (C) : Register the CountTransferManagerFactory
-        await I_ModuleRegistry.registerModule(I_CountTransferManagerFactory.address, { from: account_polymath });
-        await I_ModuleRegistry.verifyModule(I_CountTransferManagerFactory.address, true, { from: account_polymath });
+        // (C) : Register the EtherDividendCheckpointFactory
+        await I_ModuleRegistry.registerModule(I_EtherDividendCheckpointFactory.address, { from: account_polymath });
+        await I_ModuleRegistry.verifyModule(I_EtherDividendCheckpointFactory.address, true, { from: account_polymath });
 
         // Step 6: Deploy the TickerRegistry
 
@@ -197,7 +186,7 @@ contract('CountTransferManager', accounts => {
         console.log(`\nPolymath Network Smart Contracts Deployed:\n
             ModuleRegistry: ${I_ModuleRegistry.address}\n
             GeneralTransferManagerFactory: ${I_GeneralTransferManagerFactory.address}\n
-            CountTransferManagerFactory: ${I_CountTransferManagerFactory.address}\n
+            EtherDividendCheckpointFactory: ${I_EtherDividendCheckpointFactory.address}\n
             GeneralPermissionManagerFactory: ${I_GeneralPermissionManagerFactory.address}\n
             TickerRegistry: ${I_TickerRegistry.address}\n
             STVersionProxy_001: ${I_STVersion.address}\n
@@ -208,14 +197,14 @@ contract('CountTransferManager', accounts => {
     describe("Generate the SecurityToken", async() => {
 
         it("Should register the ticker before the generation of the security token", async () => {
-            await I_PolyToken.approve(I_TickerRegistry.address, initRegFee, { from: token_owner});
+            await I_PolyToken.approve(I_TickerRegistry.address, initRegFee, { from: token_owner });
             let tx = await I_TickerRegistry.registerTicker(token_owner, symbol, contact, swarmHash, { from : token_owner });
             assert.equal(tx.logs[0].args._owner, token_owner);
             assert.equal(tx.logs[0].args._symbol, symbol.toUpperCase());
         });
 
         it("Should generate the new security token with the same symbol as registered above", async () => {
-            await I_PolyToken.approve(I_SecurityTokenRegistry.address, initRegFee, { from: token_owner});
+            await I_PolyToken.approve(I_SecurityTokenRegistry.address, initRegFee, { from: token_owner });
             let tx = await I_SecurityTokenRegistry.generateSecurityToken(name, symbol, tokenDetails, false, { from: token_owner, gas: 85000000 });
 
             // Verify the successful generation of the security token
@@ -250,22 +239,22 @@ contract('CountTransferManager', accounts => {
 
         });
 
-        it("Should successfully attach the CountTransferManager with the security token", async () => {
-            const tx = await I_SecurityToken.addModule(I_CountTransferManagerFactory.address, bytesSTO, 0, 0, true, { from: token_owner });
-            assert.equal(tx.logs[2].args._type.toNumber(), transferManagerKey, "CountTransferManager doesn't get deployed");
+        it("Should successfully attach the EtherDividendCheckpoint with the security token", async () => {
+            const tx = await I_SecurityToken.addModule(I_EtherDividendCheckpointFactory.address, "", 0, 0, true, { from: token_owner });
+            assert.equal(tx.logs[2].args._type.toNumber(), checkpointKey, "EtherDividendCheckpoint doesn't get deployed");
             assert.equal(
                 web3.utils.toAscii(tx.logs[2].args._name)
                 .replace(/\u0000/g, ''),
-                "CountTransferManager",
-                "CountTransferManager module was not added"
+                "EtherDividendCheckpoint",
+                "EtherDividendCheckpoint module was not added"
             );
-            I_CountTransferManager = CountTransferManager.at(tx.logs[2].args._module);
+            I_EtherDividendCheckpoint = EtherDividendCheckpoint.at(tx.logs[2].args._module);
         });
     });
 
-    describe("Buy tokens using on-chain whitelist", async() => {
+    describe("Check Dividend payouts", async() => {
 
-        it("Should Buy the tokens", async() => {
+        it("Buy some tokens for account_investor1 (1 ETH)", async() => {
             // Add the Investor in to the whitelist
 
             let tx = await I_GeneralTransferManager.modifyWhitelist(
@@ -293,7 +282,7 @@ contract('CountTransferManager', accounts => {
             );
         });
 
-        it("Should Buy some more tokens", async() => {
+        it("Buy some tokens for account_investor2 (2 ETH)", async() => {
             // Add the Investor in to the whitelist
 
             let tx = await I_GeneralTransferManager.modifyWhitelist(
@@ -318,8 +307,34 @@ contract('CountTransferManager', accounts => {
             );
         });
 
-        it("Should fail to buy some more tokens (more than 2 holders)", async() => {
+        it("Create new dividend", async() => {
+            let maturity = latestTime();
+            let expiry = latestTime() + duration.days(10);
+            let tx = await I_EtherDividendCheckpoint.createDividend(maturity, expiry, {from: token_owner, value: web3.utils.toWei('1.5', 'ether')});
+            assert.equal(tx.logs[0].args._checkpointId.toNumber(), 1, "Dividend should be created at checkpoint 1");
+        });
+
+        it("Investor 1 transfers his token balance to investor 2", async() => {
+            await I_SecurityToken.transfer(account_investor2, web3.utils.toWei('1', 'ether'), {from: account_investor1});
+            assert.equal(await I_SecurityToken.balanceOf(account_investor1), 0);
+            assert.equal(await I_SecurityToken.balanceOf(account_investor2), web3.utils.toWei('3', 'ether'));
+        });
+
+        it("Issuer pushes dividends iterating over account holders - dividends proportional to checkpoint", async() => {
+            let investor1Balance = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2Balance = BigNumber(await web3.eth.getBalance(account_investor2));
+            await I_EtherDividendCheckpoint.pushDividendPayment(0, 0, 10, {from: token_owner});
+            let investor1BalanceAfter = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2BalanceAfter = BigNumber(await web3.eth.getBalance(account_investor2));
+            assert.equal(investor1BalanceAfter.sub(investor1Balance).toNumber(), web3.utils.toWei('0.5', 'ether'));
+            assert.equal(investor2BalanceAfter.sub(investor2Balance).toNumber(), web3.utils.toWei('1', 'ether'));
+            //Check fully claimed
+            assert.equal((await I_EtherDividendCheckpoint.dividends(0))[5].toNumber(), web3.utils.toWei('1.5', 'ether'));
+        });
+
+        it("Buy some tokens for account_investor3 (7 ETH)", async() => {
             // Add the Investor in to the whitelist
+
             let tx = await I_GeneralTransferManager.modifyWhitelist(
                 account_investor3,
                 latestTime(),
@@ -333,140 +348,125 @@ contract('CountTransferManager', accounts => {
 
             assert.equal(tx.logs[0].args._investor.toLowerCase(), account_investor3.toLowerCase(), "Failed in adding the investor in whitelist");
 
+            // Mint some tokens
+            await I_SecurityToken.mint(account_investor3, web3.utils.toWei('7', 'ether'), { from: token_owner });
+
+            assert.equal(
+                (await I_SecurityToken.balanceOf(account_investor3)).toNumber(),
+                web3.utils.toWei('7', 'ether')
+            );
+        });
+
+        it("Create another new dividend", async() => {
+            let maturity = latestTime();
+            let expiry = latestTime() + duration.days(10);
+            let tx = await I_EtherDividendCheckpoint.createDividend(maturity, expiry, {from: token_owner, value: web3.utils.toWei('10', 'ether')});
+            assert.equal(tx.logs[0].args._checkpointId.toNumber(), 2, "Dividend should be created at checkpoint 2");
+        });
+
+        it("Investor 3 claims dividend, issuer pushes remainder", async() => {
+            let investor1Balance = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2Balance = BigNumber(await web3.eth.getBalance(account_investor2));
+            let investor3Balance = BigNumber(await web3.eth.getBalance(account_investor3));
+            await I_EtherDividendCheckpoint.pullDividendPayment(1, {from: account_investor3, gasPrice: 0});
+            let investor1BalanceAfter1 = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2BalanceAfter1 = BigNumber(await web3.eth.getBalance(account_investor2));
+            let investor3BalanceAfter1 = BigNumber(await web3.eth.getBalance(account_investor3));
+            assert.equal(investor1BalanceAfter1.sub(investor1Balance).toNumber(), 0);
+            assert.equal(investor2BalanceAfter1.sub(investor2Balance).toNumber(), 0);
+            assert.equal(investor3BalanceAfter1.sub(investor3Balance).toNumber(), web3.utils.toWei('7', 'ether'));
+
+            await I_EtherDividendCheckpoint.pushDividendPayment(1, 0, 10, {from: token_owner});
+            let investor1BalanceAfter2 = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2BalanceAfter2 = BigNumber(await web3.eth.getBalance(account_investor2));
+            let investor3BalanceAfter2 = BigNumber(await web3.eth.getBalance(account_investor3));
+            assert.equal(investor1BalanceAfter2.sub(investor1BalanceAfter1).toNumber(), 0);
+            assert.equal(investor2BalanceAfter2.sub(investor2BalanceAfter1).toNumber(), web3.utils.toWei('3', 'ether'));
+            assert.equal(investor3BalanceAfter2.sub(investor3BalanceAfter1).toNumber(), 0);
+            //Check fully claimed
+            assert.equal((await I_EtherDividendCheckpoint.dividends(1))[5].toNumber(), web3.utils.toWei('10', 'ether'));
+        });
+
+        it("Investor 2 transfers 1 ETH of his token balance to investor 1", async() => {
+            await I_SecurityToken.transfer(account_investor1, web3.utils.toWei('1', 'ether'), {from: account_investor2});
+            assert.equal(await I_SecurityToken.balanceOf(account_investor1), web3.utils.toWei('1', 'ether'));
+            assert.equal(await I_SecurityToken.balanceOf(account_investor2), web3.utils.toWei('2', 'ether'));
+            assert.equal(await I_SecurityToken.balanceOf(account_investor3), web3.utils.toWei('7', 'ether'));
+        });
+
+        it("Create another new dividend with explicit", async() => {
+            let maturity = latestTime();
+            let expiry = latestTime() + duration.days(10);
+            let tx = await I_SecurityToken.createCheckpoint({from: token_owner});
+            tx = await I_EtherDividendCheckpoint.createDividendWithCheckpoint(maturity, expiry, 3, {from: token_owner, value: web3.utils.toWei('20', 'ether')});
+            assert.equal(tx.logs[0].args._checkpointId.toNumber(), 3, "Dividend should be created at checkpoint 3");
+        });
+
+        it("Investor 2 claims dividend, issuer pushes investor 1", async() => {
+            let investor1Balance = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2Balance = BigNumber(await web3.eth.getBalance(account_investor2));
+            let investor3Balance = BigNumber(await web3.eth.getBalance(account_investor3));
+            await I_EtherDividendCheckpoint.pullDividendPayment(2, {from: account_investor2, gasPrice: 0});
+            let investor1BalanceAfter1 = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2BalanceAfter1 = BigNumber(await web3.eth.getBalance(account_investor2));
+            let investor3BalanceAfter1 = BigNumber(await web3.eth.getBalance(account_investor3));
+            assert.equal(investor1BalanceAfter1.sub(investor1Balance).toNumber(), 0);
+            assert.equal(investor2BalanceAfter1.sub(investor2Balance).toNumber(), web3.utils.toWei('4', 'ether'));
+            assert.equal(investor3BalanceAfter1.sub(investor3Balance).toNumber(), 0);
+
+            await I_EtherDividendCheckpoint.pushDividendPaymentToAddresses(2, [account_investor1], {from: token_owner});
+            let investor1BalanceAfter2 = BigNumber(await web3.eth.getBalance(account_investor1));
+            let investor2BalanceAfter2 = BigNumber(await web3.eth.getBalance(account_investor2));
+            let investor3BalanceAfter2 = BigNumber(await web3.eth.getBalance(account_investor3));
+            assert.equal(investor1BalanceAfter2.sub(investor1BalanceAfter1).toNumber(), web3.utils.toWei('2', 'ether'));
+            assert.equal(investor2BalanceAfter2.sub(investor2BalanceAfter1).toNumber(), 0);
+            assert.equal(investor3BalanceAfter2.sub(investor3BalanceAfter1).toNumber(), 0);
+            //Check fully claimed
+            assert.equal((await I_EtherDividendCheckpoint.dividends(2))[5].toNumber(), web3.utils.toWei('6', 'ether'));
+        });
+
+        it("Issuer unable to reclaim dividend (expiry not passed)", async() => {
             let errorThrown = false;
             try {
-                // Mint some tokens
-                await I_SecurityToken.mint(account_investor3, web3.utils.toWei('3', 'ether'), { from: token_owner });
+                await I_EtherDividendCheckpoint.reclaimDividend(2, {from: token_owner});
             } catch(error) {
-                console.log(`         tx revert -> Too many holders`.grey);
-                ensureException(error);
+                console.log(`Tx Failed because expiry is in the future ${0}. Test Passed Successfully`);
                 errorThrown = true;
+                ensureException(error);
             }
             assert.ok(errorThrown, message);
         });
 
-
-        it("Should still be able to add to original token holders", async() => {
-            // Add the Investor in to the whitelist
-            // Mint some tokens
-            await I_SecurityToken.mint(account_investor2, web3.utils.toWei('2', 'ether'), { from: token_owner });
-
-            assert.equal(
-                (await I_SecurityToken.balanceOf(account_investor2)).toNumber(),
-                web3.utils.toWei('4', 'ether')
-            );
+        it("Issuer is able to reclaim dividend after expiry", async() => {
+            await increaseTime(11 * 24 * 60 * 60);
+            let tokenOwnerBalance = BigNumber(await web3.eth.getBalance(token_owner));
+            await I_EtherDividendCheckpoint.reclaimDividend(2, {from: token_owner, gasPrice: 0});
+            let tokenOwnerAfter = BigNumber(await web3.eth.getBalance(token_owner));
+            assert.equal(tokenOwnerAfter.sub(tokenOwnerBalance).toNumber(), web3.utils.toWei('14', 'ether'));
         });
 
-        it("Should still be able to transfer between existing token holders before count change", async() => {
-            // Add the Investor in to the whitelist
-            // Mint some tokens
-            await I_SecurityToken.transfer(account_investor1, web3.utils.toWei('2', 'ether'), { from: account_investor2 });
+        it("Investor 3 unable to pull dividend after expiry", async() => {
 
-            assert.equal(
-                (await I_SecurityToken.balanceOf(account_investor2)).toNumber(),
-                web3.utils.toWei('2', 'ether')
-            );
-        });
-
-        it("Should fail in modifying the holder count", async() => {
             let errorThrown = false;
             try {
-                await I_CountTransferManager.changeHolderCount(1, { from: account_investor1 });
+                await I_EtherDividendCheckpoint.pullDividendPayment(2, {from: account_investor3, gasPrice: 0});
             } catch(error) {
-                console.log(`         tx revert -> Only owner have the permission to change the holder count`.grey);
+                console.log(`Tx Failed because expiry is in the past ${0}. Test Passed Successfully`);
                 errorThrown = true;
                 ensureException(error);
             }
             assert.ok(errorThrown, message);
-        })
 
-        it("Modify holder count to 1", async() => {
-            // Add the Investor in to the whitelist
-            // Mint some tokens
-            await I_CountTransferManager.changeHolderCount(1, { from: token_owner });
-
-            assert.equal(
-                (await I_CountTransferManager.maxHolderCount()).toNumber(),
-                1
-            );
-        });
-
-        it("Should still be able to transfer between existing token holders after count change", async() => {
-            // Add the Investor in to the whitelist
-            // Mint some tokens
-            await I_SecurityToken.transfer(account_investor2, web3.utils.toWei('2', 'ether'), { from: account_investor1 });
-
-            assert.equal(
-                (await I_SecurityToken.balanceOf(account_investor2)).toNumber(),
-                web3.utils.toWei('4', 'ether')
-            );
-        });
-
-        // it("Should not be able to transfer to a token holder", async() => {
-        //     let errorThrown = false;
-
-        //     await I_CountTransferManager.pause({from: token_owner});
-        //     assert.isTrue(await I_CountTransferManager.paused.call());
-
-        //     try {
-        //         // Mint some tokens
-        //         await I_SecurityToken.transfer(account_investor1, web3.utils.toWei('1', 'ether'), { from: account_investor2 });
-        //     } catch(error) {
-        //         console.log(`Failed due to transfers are paused`);
-        //         ensureException(error);
-        //         errorThrown = true;
-        //     }
-        //     assert.ok(errorThrown, message);
-        //   });
-
-
-        it("Should not be able to transfer to a new token holder", async() => {
-          let errorThrown = false;
-          // await I_CountTransferManager.unpause({from: token_owner});
-          try {
-              // Mint some tokens
-              await I_SecurityToken.transfer(account_investor3, web3.utils.toWei('2', 'ether'), { from: account_investor2 });
-          } catch(error) {
-              console.log(`         tx revert -> Too many holders`.grey);
-              ensureException(error);
-              errorThrown = true;
-          }
-          assert.ok(errorThrown, message);
-
-        });
-
-        it("Should be able to consolidate balances", async() => {
-            await I_SecurityToken.transfer(account_investor2, web3.utils.toWei('1', 'ether'), { from: account_investor1 });
-        });
-
-        it("Should get the permission list", async() => {
-            let perm = await I_CountTransferManager.getPermissions.call();
-            assert.equal(perm.length, 0);
         });
 
         describe("Test cases for the factory", async() => {
-            it("should get the exact details of the factory", async() => {
-                assert.equal(await I_CountTransferManagerFactory.setupCost.call(),0);
-                assert.equal(await I_CountTransferManagerFactory.getType.call(),2);
-                assert.equal(web3.utils.toAscii(await I_CountTransferManagerFactory.getName.call())
+            it("should get the details of the factory", async() => {
+                assert.equal(await I_EtherDividendCheckpointFactory.setupCost.call(),0);
+                assert.equal(await I_EtherDividendCheckpointFactory.getType.call(),4);
+                assert.equal(web3.utils.toAscii(await I_EtherDividendCheckpointFactory.getName.call())
                             .replace(/\u0000/g, ''),
-                            "CountTransferManager",
+                            "EtherDividendCheckpoint",
                             "Wrong Module added");
-                assert.equal(await I_CountTransferManagerFactory.getDescription.call(),
-                            "Restrict the number of investors",
-                            "Wrong Module added");
-                assert.equal(await I_CountTransferManagerFactory.getTitle.call(),
-                            "Count Transfer Manager",
-                            "Wrong Module added");
-                assert.equal(await I_CountTransferManagerFactory.getInstructions.call(),
-                            "Allows an issuer to restrict the total number of non-zero token holders",
-                            "Wrong Module added");
-
-            });
-
-            it("Should get the tags of the factory", async() => {
-                let tags = await I_CountTransferManagerFactory.getTags.call();
-                assert.equal(web3.utils.toAscii(tags[0]).replace(/\u0000/g, ''),"Count");
             });
         });
 
