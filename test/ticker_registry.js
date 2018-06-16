@@ -189,7 +189,7 @@ contract('TickerRegistry', accounts => {
 
         it("verify the expiry limit", async() => {
             let expiry = await I_TickerRegistry.expiryLimit.call();
-            assert.equal(expiry.toNumber(), 604800);
+            assert.equal(expiry.toNumber(), 1296000);
         });
     });
 
@@ -259,12 +259,59 @@ contract('TickerRegistry', accounts => {
         });
 
         it("Should successfully register pre registerd ticker if expiry is reached", async() => {
-            await increaseTime(605000);
+            await increaseTime(1300000);
             await I_PolyToken.approve(I_TickerRegistry.address, initRegFee, { from: account_temp});
             let tx = await I_TickerRegistry.registerTicker(account_temp, symbol, name, swarmHash, { from: account_temp });
             assert.equal(tx.logs[0].args._owner, account_temp);
             assert.equal(tx.logs[0].args._symbol, symbol);
         });
+
+        it("Should fail to register ticker if registration is paused", async() => {
+            let errorThrown = false;
+            try {
+                await I_TickerRegistry.pause({ from: account_polymath});
+                await I_PolyToken.approve(I_TickerRegistry.address, initRegFee, { from: token_owner});
+                let tx = await I_TickerRegistry.registerTicker(token_owner, "AAA", name, swarmHash, { from: token_owner });
+            } catch(error) {
+                console.log(`         tx revert -> Registration is paused`.grey);
+                errorThrown = true;
+                ensureException(error);
+            }
+            assert.ok(errorThrown, message);
+        });
+
+        it("Should fail to pause if already paused", async() => {
+            let errorThrown = false;
+            try {
+                await I_TickerRegistry.pause({ from: account_polymath});
+            } catch(error) {
+                console.log(`         tx revert -> Registration is already paused`.grey);
+                errorThrown = true;
+                ensureException(error);
+            }
+            assert.ok(errorThrown, message);
+        });
+
+        it("Should successfully register ticker if registration is unpaused", async() => {
+            await I_TickerRegistry.unpause({ from: account_polymath});
+            await I_PolyToken.approve(I_TickerRegistry.address, initRegFee, { from: token_owner});
+            let tx = await I_TickerRegistry.registerTicker(token_owner, "AAA", name, swarmHash, { from: token_owner });
+            assert.equal(tx.logs[0].args._owner, token_owner);
+            assert.equal(tx.logs[0].args._symbol, "AAA");
+        });
+
+        it("Should fail to unpause if already unpaused", async() => {
+            let errorThrown = false;
+            try {
+                await I_TickerRegistry.unpause({ from: account_polymath});
+            } catch(error) {
+                console.log(`         tx revert -> Registration is already unpaused`.grey);
+                errorThrown = true;
+                ensureException(error);
+            }
+            assert.ok(errorThrown, message);
+        });
+
     });
 
     describe("Test cases for the expiry limit", async() => {
@@ -316,6 +363,19 @@ contract('TickerRegistry', accounts => {
             );
             assert.equal(tx[4], false);
         });
+
+        it("Should get the details of unregistered token", async() => {
+            let tx = await I_TickerRegistry.getDetails.call("TORO");
+            assert.equal(tx[0], "0x0000000000000000000000000000000000000000");
+            assert.equal(tx[2], "");
+            assert.equal(
+                web3.utils.toAscii(tx[3])
+                .replace(/\u0000/g, ''),
+                ""
+            );
+            assert.equal(tx[4], false);
+        });
+
     });
 
     describe("Test cases for check validity", async() => {
@@ -333,6 +393,22 @@ contract('TickerRegistry', accounts => {
         });
     });
 
+    describe("Test cases for isReserved", async() => {
+
+        it("Should fail to check if reserved because msg.sender is not STR", async() => {
+            let errorThrown = false;
+            try {
+                await I_TickerRegistry.isReserved(symbol, account_temp, name, swarmHash, {from: accounts[9]});
+            } catch(error) {
+                console.log(`         tx revert -> msg.sender is not the STR`.grey);
+                errorThrown = true;
+                ensureException(error);
+            }
+            assert.ok(errorThrown, message);
+        });
+
+    });
+
     describe("Test cases for IRegistry functionality", async() => {
 
         describe("Test cases for changePolyRegisterationFee", async() => {
@@ -346,6 +422,18 @@ contract('TickerRegistry', accounts => {
                 let errorThrown = false;
                 try {
                     let tx = await I_TickerRegistry.changePolyRegisterationFee(400 * Math.pow(10, 18), { from: account_temp });
+                } catch(error) {
+                    console.log(`         tx revert -> Failed to change registrationFee`.grey);
+                    errorThrown = true;
+                    ensureException(error);
+                }
+                assert.ok(errorThrown, message);
+            });
+
+            it("Should fail to change the registration fee if fee is equivalent", async() => {
+                let errorThrown = false;
+                try {
+                    let tx = await I_TickerRegistry.changePolyRegisterationFee(initRegFee, { from: account_polymath });
                 } catch(error) {
                     console.log(`         tx revert -> Failed to change registrationFee`.grey);
                     errorThrown = true;
@@ -370,6 +458,30 @@ contract('TickerRegistry', accounts => {
                 await I_TickerRegistry.reclaimERC20(I_PolyToken.address);
                 let bal2 = await I_PolyToken.balanceOf.call(account_polymath);
                 assert.isAbove(bal2, bal1);
+            });
+
+            it("Should fail to reclaim tokens if address provided is 0 address", async() => {
+                let errorThrown = false;
+                try {
+                    await I_TickerRegistry.reclaimERC20("0x0000000000000000000000000000000000000000");
+                } catch(error) {
+                    console.log(`         tx revert -> Address provided is address(0)`.grey);
+                    errorThrown = true;
+                    ensureException(error);
+                }
+                assert.ok(errorThrown, message);
+            });
+
+            it("Should fail to reclaim tokens if token transfer fails", async() => {
+                let errorThrown = false;
+                try {
+                    await I_TickerRegistry.reclaimERC20("0x0000000000000000000000000000000000000001");
+                } catch(error) {
+                    console.log(`         tx revert -> Address provided is address(0)`.grey);
+                    errorThrown = true;
+                    ensureException(error);
+                }
+                assert.ok(errorThrown, message);
             });
 
         });
