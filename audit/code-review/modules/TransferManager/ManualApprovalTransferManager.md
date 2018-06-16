@@ -21,6 +21,9 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 // revokeManualApproval                     X                 X
 // revokeManualBlocking                     X                 X
 
+/**
+ * @title Transfer Manager module for manually approving or blocking transactions between accounts
+ */
 contract ManualApprovalTransferManager is ITransferManager {
     using SafeMath for uint256;
 
@@ -77,7 +80,7 @@ contract ManualApprovalTransferManager is ITransferManager {
     );
 
     /**
-     * @dev Constructor
+     * @notice Constructor
      * @param _securityToken Address of the security token
      * @param _polyAddress Address of the polytoken
      */
@@ -95,7 +98,7 @@ contract ManualApprovalTransferManager is ITransferManager {
     }
 
     /**
-    * @dev default implementation of verifyTransfer used by SecurityToken
+    * @notice default implementation of verifyTransfer used by SecurityToken
     * If the transfer request comes from the STO, it only checks that the investor is in the whitelist
     * If the transfer request comes from a token holder, it checks that:
     * a) Both are on the whitelist
@@ -119,7 +122,7 @@ contract ManualApprovalTransferManager is ITransferManager {
     }
 
     /**
-    * @dev adds a pair of addresses to manual approvals
+    * @notice adds a pair of addresses to manual approvals
     * @param _from is the address from which transfers are approved
     * @param _to is the address to which transfers are approved
     * @param _allowance is the approved amount of tokens
@@ -135,7 +138,7 @@ contract ManualApprovalTransferManager is ITransferManager {
     }
 
     /**
-    * @dev adds a pair of addresses to manual blockings
+    * @notice adds a pair of addresses to manual blockings
     * @param _from is the address from which transfers are blocked
     * @param _to is the address to which transfers are blocked
     * @param _expiryTime is the time until which the transfer is blocked
@@ -150,7 +153,7 @@ contract ManualApprovalTransferManager is ITransferManager {
     }
 
     /**
-    * @dev removes a pairs of addresses from manual approvals
+    * @notice removes a pairs of addresses from manual approvals
     * @param _from is the address from which transfers are approved
     * @param _to is the address to which transfers are approved
     */
@@ -162,7 +165,7 @@ contract ManualApprovalTransferManager is ITransferManager {
     }
 
     /**
-    * @dev removes a pairs of addresses from manual approvals
+    * @notice removes a pairs of addresses from manual approvals
     * @param _from is the address from which transfers are approved
     * @param _to is the address to which transfers are approved
     */

@@ -9,36 +9,33 @@ Source file [../../../contracts/interfaces/IRegistry.sol](../../../contracts/int
 ```javascript
 pragma solidity ^0.4.23;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol";
-
-contract IRegistry is Ownable {
-
-    // Registration fee in POLY base 18 decimals
-    uint256 public registrationFee;
-
-    event LogChangePolyRegisterationFee(uint256 _oldFee, uint256 _newFee);
+/**
+ * @title Interface for all polymath registry contracts
+ */
+contract IRegistry {
 
     /**
-    * @dev Reclaim all ERC20Basic compatible tokens
-    * @param _tokenContract The address of the token contract
-    */
-    function reclaimERC20(address _tokenContract) external onlyOwner {
-        require(_tokenContract != address(0));
-        ERC20Basic token = ERC20Basic(_tokenContract);
-        uint256 balance = token.balanceOf(address(this));
-        require(token.transfer(owner, balance));
-    }
-
-    /**
-     * @dev set the ticker registration fee in POLY tokens
-     * @param _registrationFee registration fee in POLY tokens (base 18 decimals)
+     * @notice get the contract address
+     * @param _nameKey is the key for the contract address mapping
      */
-    function changePolyRegisterationFee(uint256 _registrationFee) public onlyOwner {
-        require(registrationFee != _registrationFee);
-        emit LogChangePolyRegisterationFee(registrationFee, _registrationFee);
-        registrationFee = _registrationFee;
-    }
+    function getAddress(string _nameKey) view public returns(address);
+
+    /**
+     * @notice change the contract address
+     * @param _nameKey is the key for the contract address mapping
+     * @param _newAddress is the new contract address
+     */
+    function changeAddress(string _nameKey, address _newAddress) public;
+
+    /**
+     * @notice pause (overridden function)
+     */
+    function unpause() public;
+
+    /**
+     * @notice unpause (overridden function)
+     */
+    function pause() public;
 
 }
 

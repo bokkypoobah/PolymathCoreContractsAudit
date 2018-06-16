@@ -13,16 +13,13 @@ import "./interfaces/IModuleRegistry.sol";
 import "./interfaces/IModuleFactory.sol";
 import "./interfaces/ISecurityToken.sol";
 import "./interfaces/ISecurityTokenRegistry.sol";
-import "./interfaces/IRegistry.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./Registry.sol";
 
 /**
-* @title ModuleRegistry
-* @notice Stores registered modules
-* Anyone can register modules, but only those "approved" by Polymath will be allowed to everyone.
+* @title Registry contract to store registered modules
+* @notice Anyone can register modules, but only those "approved" by Polymath will be available for issuers to add
 */
-
-contract ModuleRegistry is IModuleRegistry, IRegistry {
+contract ModuleRegistry is IModuleRegistry, Registry {
 
     // Mapping used to hold the type of module factory corresponds to the address of the Module factory contract
     mapping (address => uint8) public registry;
@@ -35,7 +32,6 @@ contract ModuleRegistry is IModuleRegistry, IRegistry {
     // Contains the list of the available tags corresponds to the module type
     mapping (uint8 => bytes32[]) public availableTags;
 
-    address public securityTokenRegistry;
     // Emit when Module been used by the securityToken
     event LogModuleUsed(address indexed _moduleFactory, address indexed _securityToken);
     // Emit when the Module Factory get registered with the ModuleRegistry contract
@@ -44,12 +40,12 @@ contract ModuleRegistry is IModuleRegistry, IRegistry {
     event LogModuleVerified(address indexed _moduleFactory, bool _verified);
 
     /**
-    * @dev Called by a security token to notify the registry it is using a module
+    * @notice Called by a security token to notify the registry it is using a module
     * @param _moduleFactory is the address of the relevant module factory
     */
     function useModule(address _moduleFactory) external {
         //If caller is a registered security token, then register module usage
-        if (ISecurityTokenRegistry(securityTokenRegistry).isSecurityToken(msg.sender)) {
+        if (ISecurityTokenRegistry(getAddress("SecurityTokenRegistry")).isSecurityToken(msg.sender)) {
             require(registry[_moduleFactory] != 0, "ModuleFactory type should not be 0");
             //To use a module, either it must be verified, or owned by the ST owner
             require(verified[_moduleFactory]||(IModuleFactory(_moduleFactory).owner() == ISecurityToken(msg.sender).owner()),
@@ -60,10 +56,11 @@ contract ModuleRegistry is IModuleRegistry, IRegistry {
     }
 
     /**
-    * @dev Called by moduleFactory owner to register new modules for SecurityToken to use
+    * @notice Called by moduleFactory owner to register new modules for SecurityToken to use
     * @param _moduleFactory is the address of the module factory to be registered
+    * @return bool
     */
-    function registerModule(address _moduleFactory) external returns(bool) {
+    function registerModule(address _moduleFactory) external whenNotPaused returns(bool) {
         require(registry[_moduleFactory] == 0, "Module factory should not be pre-registered");
         IModuleFactory moduleFactory = IModuleFactory(_moduleFactory);
         require(moduleFactory.getType() != 0, "Factory type should not equal to 0");
@@ -75,10 +72,11 @@ contract ModuleRegistry is IModuleRegistry, IRegistry {
     }
 
     /**
-    * @dev Called by Polymath to verify modules for SecurityToken to use.
-    * A module can not be used by an ST unless first approved/verified by Polymath
-    * (The only exception to this is that the author of the module is the owner of the ST)
+    * @notice Called by Polymath to verify modules for SecurityToken to use.
+    * @notice A module can not be used by an ST unless first approved/verified by Polymath
+    * @notice (The only exception to this is that the author of the module is the owner of the ST)
     * @param _moduleFactory is the address of the module factory to be registered
+    * @return bool
     */
     function verifyModule(address _moduleFactory, bool _verified) external onlyOwner returns(bool) {
         //Must already have been registered
@@ -89,24 +87,16 @@ contract ModuleRegistry is IModuleRegistry, IRegistry {
     }
 
     /**
-    * @dev Called by owner to set the token registry address
-    * @param _securityTokenRegistry is the address of the token registry
-    */
-    function setTokenRegistry(address _securityTokenRegistry) public onlyOwner {
-        require(_securityTokenRegistry != address(0), "Address of securityTokenregistry should not be 0x");
-        securityTokenRegistry = _securityTokenRegistry;
-    }
-
-    /**
-     * @dev Use to get all the tags releated to the functionality of the Module Factory.
+     * @notice Use to get all the tags releated to the functionality of the Module Factory.
      * @param _moduleType Type of module
+     * @return bytes32 array
      */
     function getTagByModuleType(uint8 _moduleType) public view returns(bytes32[]) {
         return availableTags[_moduleType];
     }
 
     /**
-     * @dev Add the tag for specified Module Factory
+     * @notice Add the tag for specified Module Factory
      * @param _moduleType Type of module.
      * @param _tag List of tags
      */
@@ -117,7 +107,7 @@ contract ModuleRegistry is IModuleRegistry, IRegistry {
      }
 
     /**
-     * @dev remove the tag for specified Module Factory
+     * @notice remove the tag for specified Module Factory
      * @param _moduleType Type of module.
      * @param _removedTags List of tags
      */

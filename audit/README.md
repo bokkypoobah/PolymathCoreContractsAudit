@@ -6,11 +6,17 @@ Status: Not commenced
 ### contract
 
 * [ ] [code-review/ModuleRegistry.md](code-review/ModuleRegistry.md)
-  * [ ] contract ModuleRegistry is IModuleRegistry, IRegistry
+  * [ ] contract ModuleRegistry is IModuleRegistry, Registry
+* [ ] [code-review/Pausable.md](code-review/Pausable.md)
+  * [ ] contract Pausable
+* [ ] [code-review/ReclaimTokens.md](code-review/ReclaimTokens.md)
+  * [ ] contract ReclaimTokens is Ownable
+* [ ] [code-review/Registry.md](code-review/Registry.md)
+  * [ ] contract Registry is IRegistry, Pausable, ReclaimTokens
 * [ ] [code-review/SecurityTokenRegistry.md](code-review/SecurityTokenRegistry.md)
-  * [ ] contract SecurityTokenRegistry is ISecurityTokenRegistry, Util, IRegistry
+  * [ ] contract SecurityTokenRegistry is ISecurityTokenRegistry, Util, Registry
 * [ ] [code-review/TickerRegistry.md](code-review/TickerRegistry.md)
-  * [ ] contract TickerRegistry is ITickerRegistry, Util, IRegistry
+  * [ ] contract TickerRegistry is ITickerRegistry, Util, Registry
     * [ ] using SafeMath for uint256;
 
 <br />
@@ -32,10 +38,8 @@ Status: Not commenced
   * [ ] contract IModuleFactory is Ownable
 * [ ] [code-review/interfaces/IModuleRegistry.md](code-review/interfaces/IModuleRegistry.md)
   * [ ] contract IModuleRegistry
-* [ ] [code-review/interfaces/IPausable.md](code-review/interfaces/IPausable.md)
-  * [ ] contract IPausable
 * [ ] [code-review/interfaces/IRegistry.md](code-review/interfaces/IRegistry.md)
-  * [ ] contract IRegistry is Ownable
+  * [ ] contract IRegistry
 * [ ] [code-review/interfaces/IST20.md](code-review/interfaces/IST20.md)
   * [ ] contract IST20 is StandardToken, DetailedERC20
 * [ ] [code-review/interfaces/ISTProxy.md](code-review/interfaces/ISTProxy.md)
@@ -74,7 +78,7 @@ Status: Not commenced
 * [ ] [code-review/modules/STO/DummySTOFactory.md](code-review/modules/STO/DummySTOFactory.md)
   * [ ] contract DummySTOFactory is IModuleFactory
 * [ ] [code-review/modules/STO/ISTO.md](code-review/modules/STO/ISTO.md)
-  * [ ] contract ISTO is IModule, IPausable
+  * [ ] contract ISTO is IModule, Pausable
     * [ ] using SafeMath for uint256;
 * [ ] [code-review/modules/STO/PreSaleSTO.md](code-review/modules/STO/PreSaleSTO.md)
   * [ ] contract PreSaleSTO is ISTO
@@ -96,7 +100,7 @@ Status: Not commenced
 * [ ] [code-review/modules/TransferManager/GeneralTransferManagerFactory.md](code-review/modules/TransferManager/GeneralTransferManagerFactory.md)
   * [ ] contract GeneralTransferManagerFactory is IModuleFactory
 * [ ] [code-review/modules/TransferManager/ITransferManager.md](code-review/modules/TransferManager/ITransferManager.md)
-  * [ ] contract ITransferManager is IModule, IPausable
+  * [ ] contract ITransferManager is IModule, Pausable
 * [ ] [code-review/modules/TransferManager/ManualApprovalTransferManager.md](code-review/modules/TransferManager/ManualApprovalTransferManager.md)
   * [ ] contract ManualApprovalTransferManager is ITransferManager
     * [ ] using SafeMath for uint256;

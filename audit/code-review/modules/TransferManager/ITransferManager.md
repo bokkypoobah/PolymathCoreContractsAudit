@@ -9,10 +9,13 @@ Source file [../../../../contracts/modules/TransferManager/ITransferManager.sol]
 ```javascript
 pragma solidity ^0.4.23;
 
-import "../../interfaces/IPausable.sol";
+import "../../Pausable.sol";
 import "../../interfaces/IModule.sol";
 
-contract ITransferManager is IModule, IPausable {
+/**
+ * @title Interface to be implemented by all Transfer Manager modules
+ */
+contract ITransferManager is IModule, Pausable {
 
     //If verifyTransfer returns:
     //  FORCE_VALID, the transaction will always be valid, regardless of other TM results
