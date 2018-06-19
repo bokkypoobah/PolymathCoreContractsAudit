@@ -7,7 +7,7 @@ Source file [../../../../contracts/modules/TransferManager/ManualApprovalTransfe
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "./ITransferManager.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";

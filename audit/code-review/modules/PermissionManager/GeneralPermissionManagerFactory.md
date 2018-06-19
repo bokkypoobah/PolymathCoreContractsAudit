@@ -7,7 +7,7 @@ Source file [../../../../contracts/modules/PermissionManager/GeneralPermissionMa
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "./GeneralPermissionManager.sol";
 import "../../interfaces/IModuleFactory.sol";

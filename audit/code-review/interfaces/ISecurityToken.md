@@ -7,7 +7,7 @@ Source file [../../../contracts/interfaces/ISecurityToken.sol](../../../contract
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "./IST20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";

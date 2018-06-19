@@ -7,7 +7,7 @@ Source file [../../../../contracts/modules/TransferManager/ITransferManager.sol]
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "../../Pausable.sol";
 import "../../interfaces/IModule.sol";

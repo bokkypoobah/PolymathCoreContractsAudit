@@ -7,7 +7,7 @@ Source file [../../../../contracts/modules/STO/PreSaleSTO.sol](../../../../contr
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "./ISTO.sol";
 import "../../interfaces/IST20.sol";

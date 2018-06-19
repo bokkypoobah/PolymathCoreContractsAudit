@@ -7,7 +7,7 @@ Source file [../../../../contracts/modules/PermissionManager/IPermissionManager.
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "../../interfaces/IModule.sol";
 

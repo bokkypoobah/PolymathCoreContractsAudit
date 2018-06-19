@@ -7,7 +7,7 @@ Source file [../../contracts/Registry.sol](../../contracts/Registry.sol).
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "./Pausable.sol";
 import "./ReclaimTokens.sol";
@@ -37,8 +37,8 @@ contract Registry is IRegistry, Pausable, ReclaimTokens {
      * @return address
      */
     function getAddress(string _nameKey) view public returns(address) {
-        require(validAddressKeys[keccak256(_nameKey)]);
-        return storedAddresses[keccak256(_nameKey)];
+        require(validAddressKeys[keccak256(bytes(_nameKey))]);
+        return storedAddresses[keccak256(bytes(_nameKey))];
     }
 
     /**
@@ -48,12 +48,12 @@ contract Registry is IRegistry, Pausable, ReclaimTokens {
      */
     function changeAddress(string _nameKey, address _newAddress) public onlyOwner {
         address oldAddress;
-        if (validAddressKeys[keccak256(_nameKey)]) {
+        if (validAddressKeys[keccak256(bytes(_nameKey))]) {
             oldAddress = getAddress(_nameKey);
         } else {
-            validAddressKeys[keccak256(_nameKey)] = true;
+            validAddressKeys[keccak256(bytes(_nameKey))] = true;
         }
-        storedAddresses[keccak256(_nameKey)] = _newAddress;
+        storedAddresses[keccak256(bytes(_nameKey))] = _newAddress;
         emit LogChangeAddress(_nameKey, oldAddress, _newAddress);
     }
 

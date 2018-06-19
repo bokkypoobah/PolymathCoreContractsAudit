@@ -7,7 +7,7 @@ Source file [../../../contracts/helpers/Util.sol](../../../contracts/helpers/Uti
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 /**
  * @title Utility contract for reusable code

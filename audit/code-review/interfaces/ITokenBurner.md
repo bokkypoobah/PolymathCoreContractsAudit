@@ -7,7 +7,7 @@ Source file [../../../contracts/interfaces/ITokenBurner.sol](../../../contracts/
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 /**
  * @title Interface for the token burner contract

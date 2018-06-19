@@ -7,7 +7,7 @@ Source file [../../../contracts/tokens/STVersionProxy001.sol](../../../contracts
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "./SecurityToken.sol";
 import "../SecurityTokenRegistry.sol";

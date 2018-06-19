@@ -7,7 +7,7 @@ Source file [../../../contracts/interfaces/ISecurityTokenRegistry.sol](../../../
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "./ISecurityToken.sol";
 

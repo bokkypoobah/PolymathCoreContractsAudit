@@ -7,7 +7,7 @@ Source file [../../contracts/Pausable.sol](../../contracts/Pausable.sol).
 <hr />
 
 ```javascript
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 /**
  * @title Utility contract to allow pausing and unpausing of certain functions
